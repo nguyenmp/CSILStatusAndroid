@@ -2,4 +2,6 @@
 *~
 *.swp
 *.iml
-idea/
+.idea/
+.gradle/
+local.properties
