@@ -14,7 +14,7 @@ import com.nguyenmp.csilstatus.app.dummy.DummyContent;
  * A fragment representing a list of Items.
  * <p />
  * <p />
- * Activities containing this fragment MUST implement the {@link Callbacks}
+ * Activities containing this fragment MUST implement the {@link com.nguyenmp.csilstatus.app.UserFragment.OnFragmentInteractionListener}
  * interface.
  */
 public class UserFragment extends ListFragment {
@@ -53,10 +53,6 @@ public class UserFragment extends ListFragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-
-        // TODO: Change Adapter to display your content
-        setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, DummyContent.ITEMS));
     }
 
 
