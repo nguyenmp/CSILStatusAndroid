@@ -2,19 +2,24 @@ package com.nguyenmp.csilstatus.app;
 
 import android.app.Activity;
 import android.app.ListFragment;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-
+import com.jcraft.jsch.JSchException;
+import com.nguyenmp.csil.concurrency.CommandExecutor;
 import com.nguyenmp.csilstatus.app.dummy.DummyContent;
+
+import java.io.IOException;
 
 /**
  * A fragment representing a list of Items.
  * <p />
  * <p />
- * Activities containing this fragment MUST implement the {@link Callbacks}
+ * Activities containing this fragment MUST implement the
+ * {@link com.nguyenmp.csilstatus.app.ComputerFragment.OnFragmentInteractionListener}
  * interface.
  */
 public class ComputerFragment extends ListFragment {
@@ -82,6 +87,39 @@ public class ComputerFragment extends ListFragment {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
             mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
+        }
+    }
+
+    private static class FetchComputersTask extends AsyncTask<Credential, Void, String> {
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            if (result != null) {
+                for (String substring : result.split("\n")) {
+                    if (substring.startsWith("128.111.43")) Log.d("", substring);
+                }
+            } else {
+                Log.d("", "null");
+            }
+        }
+
+        @Override
+        protected String doInBackground(Credential... credentials) {
+            try {
+                Credential credential = credentials[0];
+                return CommandExecutor.performBlockingExecution(credential.username, credential.password, "csil.cs.ucsb.edu", "cat /etc/hosts");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    private static class Credential {
+        public final String username, password;
+        public Credential(String username, String password) {
+            this.username = username;
+            this.password = password;
         }
     }
 
