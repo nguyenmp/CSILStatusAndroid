@@ -4,35 +4,27 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.LoaderManager.LoaderCallbacks;
-import android.content.ContentResolver;
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.jcraft.jsch.JSchException;
 import com.nguyenmp.csil.concurrency.CommandExecutor;
+import com.nguyenmp.csilstatus.app.dao.ComputerReaderDbHelper;
+import static com.nguyenmp.csilstatus.app.dao.ComputerReaderContract.ComputerEntry;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -202,8 +194,21 @@ public class LoginActivity extends Activity {
             showProgress(false);
 
             if (response != null) {
+                ComputerReaderDbHelper dbHelper = new ComputerReaderDbHelper(LoginActivity.this);
+                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                String[] split;
                 for (String substring : response.split("\n")) {
-                    if (substring.startsWith("128.111.43")) Log.d("", substring);
+                    if (substring.startsWith("128.111.43") && (split = substring.split("\t")).length >= 1) {
+                        String ipaddress = split[0];
+                        String hostname = split[1];
+
+                        ContentValues values = new ContentValues();
+                        values.put(ComputerEntry.COLUMN_NAME_HOSTNAME, hostname);
+                        values.put(ComputerEntry.COLUMN_NAME_IP_ADDRESS, ipaddress);
+
+                        long newRowID = db.insert(ComputerEntry.TABLE_NAME, null, values);
+                        Log.d("", "Inserted row at: " + newRowID);
+                    }
                 }
                 finish();
             } else {
