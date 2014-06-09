@@ -5,10 +5,14 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -22,9 +26,10 @@ import android.widget.TextView;
 import com.jcraft.jsch.JSchException;
 import com.nguyenmp.csil.concurrency.CommandExecutor;
 import com.nguyenmp.csilstatus.app.dao.ComputerReaderDbHelper;
-import static com.nguyenmp.csilstatus.app.dao.ComputerReaderContract.ComputerEntry;
 
 import java.io.IOException;
+
+import static com.nguyenmp.csilstatus.app.dao.ComputerReaderContract.ComputerEntry;
 
 
 /**
@@ -32,6 +37,8 @@ import java.io.IOException;
 
  */
 public class LoginActivity extends Activity {
+    private static final String KEY_USERNAME = "LoginActivity.USERNAME";
+    private static final String KEY_PASSWORD = "LoginActivity.PASSWORD";
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
@@ -210,6 +217,13 @@ public class LoginActivity extends Activity {
                         Log.d("", "Inserted row at: " + newRowID);
                     }
                 }
+
+                // Save creds
+                saveCredentials(mUsername, mPassword);
+
+                // Start main activity
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                startActivity(intent);
                 finish();
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
@@ -222,6 +236,19 @@ public class LoginActivity extends Activity {
             mAuthTask = null;
             showProgress(false);
         }
+    }
+
+    private void saveCredentials(String username, String password) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        pref.edit().putString(KEY_USERNAME, username).putString(KEY_PASSWORD, password).commit();
+    }
+
+    private String[] getCredentials(Context context) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        String username = pref.getString(KEY_USERNAME, null);
+        String password = pref.getString(KEY_PASSWORD, null);
+
+        return new String[] {username, password};
     }
 }
 
