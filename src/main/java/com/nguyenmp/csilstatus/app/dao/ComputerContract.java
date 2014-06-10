@@ -2,10 +2,10 @@ package com.nguyenmp.csilstatus.app.dao;
 
 import android.provider.BaseColumns;
 
-public final class ComputerReaderContract {
+public final class ComputerContract {
     // To prevent someone from accidentally instantiating the contract class,
     // give it an empty constructor.
-    public ComputerReaderContract() {}
+    public ComputerContract() {}
 
     /* Inner class that defines the table contents */
     public static abstract class ComputerEntry implements BaseColumns {

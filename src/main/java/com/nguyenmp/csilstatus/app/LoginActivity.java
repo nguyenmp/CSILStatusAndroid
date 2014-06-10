@@ -25,11 +25,11 @@ import android.widget.TextView;
 
 import com.jcraft.jsch.JSchException;
 import com.nguyenmp.csil.concurrency.CommandExecutor;
-import com.nguyenmp.csilstatus.app.dao.ComputerReaderDbHelper;
+import com.nguyenmp.csilstatus.app.dao.ComputerDbHelper;
 
 import java.io.IOException;
 
-import static com.nguyenmp.csilstatus.app.dao.ComputerReaderContract.ComputerEntry;
+import static com.nguyenmp.csilstatus.app.dao.ComputerContract.ComputerEntry;
 
 
 /**
@@ -55,6 +55,14 @@ public class LoginActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        // If the activity has already
+        String[] credentials = LoginActivity.getCredentials(this);
+        if (credentials[0] != null && credentials[1] != null) {
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
 
         // Set up the login form.
         mUsernameView = (EditText) findViewById(R.id.login);
@@ -201,8 +209,9 @@ public class LoginActivity extends Activity {
             showProgress(false);
 
             if (response != null) {
-                ComputerReaderDbHelper dbHelper = new ComputerReaderDbHelper(LoginActivity.this);
+                ComputerDbHelper dbHelper = new ComputerDbHelper(LoginActivity.this);
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
+                db.delete(ComputerEntry.TABLE_NAME, null, null);
                 String[] split;
                 for (String substring : response.split("\n")) {
                     if (substring.startsWith("128.111.43") && (split = substring.split("\t")).length >= 1) {
@@ -243,7 +252,7 @@ public class LoginActivity extends Activity {
         pref.edit().putString(KEY_USERNAME, username).putString(KEY_PASSWORD, password).commit();
     }
 
-    private String[] getCredentials(Context context) {
+    public static String[] getCredentials(Context context) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         String username = pref.getString(KEY_USERNAME, null);
         String password = pref.getString(KEY_PASSWORD, null);

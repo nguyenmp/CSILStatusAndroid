@@ -3,9 +3,9 @@ package com.nguyenmp.csilstatus.app.dao;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import static com.nguyenmp.csilstatus.app.dao.ComputerReaderContract.ComputerEntry;
+import static com.nguyenmp.csilstatus.app.dao.ComputerContract.ComputerEntry;
 
-public class ComputerReaderDbHelper extends SQLiteOpenHelper {
+public class ComputerDbHelper extends SQLiteOpenHelper {
 
     private static final String TEXT_TYPE = " TEXT";
     private static final String BOOL_TYPE = " INTEGER";
@@ -25,7 +25,7 @@ public class ComputerReaderDbHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "FeedReader.db";
 
-    public ComputerReaderDbHelper(Context context) {
+    public ComputerDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
