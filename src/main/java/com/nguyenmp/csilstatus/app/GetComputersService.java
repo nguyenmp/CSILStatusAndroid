@@ -1,6 +1,7 @@
 package com.nguyenmp.csilstatus.app;
 
 import android.app.IntentService;
+import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -113,20 +114,26 @@ public class GetComputersService extends IntentService {
 			allUsers.add(username);
 		}
 		database.close();
-		//SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-		//friends = preferences.getStringSet("friends", null); // assign friends
-		friends.add("dcoffill");
-		friends.add("mpnguyen");
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		friends = preferences.getStringSet("friends", null); // assign friends
 
 		allUsers.retainAll(friends);
 		if(!allUsers.isEmpty()) {
-			NotificationCompat.Style style = new NotificationCompat.InboxStyle();
+			int numUsers = allUsers.size();
+			NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
+			for(String friend : allUsers) {
+				style.addLine(friend);
+			}
 			NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
 					.setStyle(style)
-					.setContentTitle(String.format("%d friend%s at CSIL", allUsers.size(), allUsers.size() == 1 ? "" : "s"))
-					.setContentInfo(getResources().getString(R.string.app_name))
+					.setContentTitle(String.format("%d friend%s at CSIL", numUsers, numUsers == 1 ? "" : "s"))
+					.setContentText(getResources().getString(R.string.app_name))
+					.setContentInfo(String.valueOf(numUsers))
 					.setLargeIcon(BitmapFactory.decodeResource(null, R.drawable.ic_launcher))
 					.setSmallIcon(R.drawable.ic_launcher);
+			NotificationManager mNotificationManager =
+					(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			mNotificationManager.notify(0, mBuilder.build());
 		}
 		else Log.i("", "No friends found");
 	}
