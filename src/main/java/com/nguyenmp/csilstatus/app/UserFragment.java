@@ -2,24 +2,12 @@ package com.nguyenmp.csilstatus.app;
 
 import android.app.Activity;
 import android.app.ListFragment;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Looper;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.nguyenmp.csil.things.User;
-import com.nguyenmp.csilstatus.app.dao.ComputerUserDbHelper;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.nguyenmp.csilstatus.app.dao.ComputerUserContract.ComputerUserEntry;
 
 /**
  * A fragment representing a list of Items.

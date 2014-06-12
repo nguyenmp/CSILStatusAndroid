@@ -10,12 +10,11 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.nguyenmp.csilstatus.app.dao.ComputerUserDbHelper;
+import com.nguyenmp.csilstatus.app.dao.DbContract;
+import com.nguyenmp.csilstatus.app.dao.DbHelper;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.nguyenmp.csilstatus.app.dao.ComputerUserContract.ComputerUserEntry;
 
 public class ComputerAdapter extends BaseAdapter {
     List<Computer> data = new ArrayList<Computer>();
@@ -63,20 +62,20 @@ public class ComputerAdapter extends BaseAdapter {
     public void notifyDataSetChanged() {
         super.notifyDataSetChanged();
 
-        SQLiteDatabase database = new ComputerUserDbHelper(context).getReadableDatabase();
-        String table = ComputerUserEntry.TABLE_NAME;
-        String[] columns = {ComputerUserEntry.COLUMN_NAME_IP_ADDRESS, ComputerUserEntry.COLUMN_NAME_HOSTNAME, "COUNT(*) AS users"};
-        String orderBy = "users DESC, " + ComputerUserEntry.COLUMN_NAME_HOSTNAME + " ASC";
-        String selection = username == null ? null : ComputerUserEntry.COLUMN_NAME_USERNAME + "='" + username + "'";
+        SQLiteDatabase database = new DbHelper(context).getReadableDatabase();
+        String table = DbContract.UsageEntry.TABLE_NAME;
+        String[] columns = {DbContract.UsageEntry.COLUMN_NAME_IP_ADDRESS, DbContract.UsageEntry.COLUMN_NAME_HOSTNAME, "COUNT(*) AS users"};
+        String orderBy = "users DESC, " + DbContract.UsageEntry.COLUMN_NAME_HOSTNAME + " ASC";
+        String selection = username == null ? null : DbContract.UsageEntry.COLUMN_NAME_USERNAME + "='" + username + "'";
 
-        String groupBy = ComputerUserEntry.COLUMN_NAME_IP_ADDRESS;
+        String groupBy = DbContract.UsageEntry.COLUMN_NAME_IP_ADDRESS;
         Cursor cursor = database.query(table, columns, selection, null, groupBy, null, orderBy);
 
         List<Computer> computers = new ArrayList<Computer>();
         while (cursor.moveToNext()) {
             int users = cursor.getInt(cursor.getColumnIndex("users"));
-            String ipAddress = cursor.getString(cursor.getColumnIndex(ComputerUserEntry.COLUMN_NAME_IP_ADDRESS));
-            String hostname = cursor.getString(cursor.getColumnIndex(ComputerUserEntry.COLUMN_NAME_HOSTNAME));
+            String ipAddress = cursor.getString(cursor.getColumnIndex(DbContract.UsageEntry.COLUMN_NAME_IP_ADDRESS));
+            String hostname = cursor.getString(cursor.getColumnIndex(DbContract.UsageEntry.COLUMN_NAME_HOSTNAME));
 
             Computer computer = new Computer();
             computer.users = users;

@@ -13,17 +13,15 @@ import android.os.Process;
 import android.util.Log;
 
 import com.nguyenmp.csil.concurrency.CommandExecutor;
-import com.nguyenmp.csilstatus.app.dao.ComputerContract.ComputerEntry;
-import com.nguyenmp.csilstatus.app.dao.ComputerDbHelper;
-import com.nguyenmp.csilstatus.app.dao.ComputerUserDbHelper;
+import com.nguyenmp.csilstatus.app.dao.DbContract.ComputerEntry;
+import com.nguyenmp.csilstatus.app.dao.DbContract;
+import com.nguyenmp.csilstatus.app.dao.DbHelper;
 
 import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import static com.nguyenmp.csilstatus.app.dao.ComputerUserContract.ComputerUserEntry;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -61,8 +59,8 @@ public class GetComputersService extends IntentService {
         // Sanity check to make sure we are logged in
         if (username == null || password == null) return;
 
-        ComputerDbHelper computerDbHelper = new ComputerDbHelper(this);
-        final SQLiteDatabase database = computerDbHelper.getWritableDatabase();
+        DbHelper dbHelper = new DbHelper(this);
+        final SQLiteDatabase database = dbHelper.getWritableDatabase();
         String table = ComputerEntry.TABLE_NAME;
         String[] columns = new String[] {ComputerEntry.COLUMN_NAME_HOSTNAME, ComputerEntry.COLUMN_NAME_IP_ADDRESS};
         Cursor cursor = database.query(table, columns, null, null, null, null, null);
@@ -157,19 +155,19 @@ public class GetComputersService extends IntentService {
         @Override
         public void onSuccess (String s){
             synchronized (context) {
-                SQLiteDatabase database = new ComputerUserDbHelper(context).getWritableDatabase();
-                database.delete(ComputerUserEntry.TABLE_NAME, ComputerUserEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
+                SQLiteDatabase database = new DbHelper(context).getWritableDatabase();
+                database.delete(DbContract.UsageEntry.TABLE_NAME, DbContract.UsageEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
 
                 String[] users = s.split("\\n");
                 for (String user : users) {
                     if (user.length() == 0) continue;
                     String[] split = user.split("\\s+");
                     if (split.length < 6) Log.d(TAG, user.replace('\n', ' '));
-                    String table = ComputerUserEntry.TABLE_NAME;
+                    String table = DbContract.UsageEntry.TABLE_NAME;
                     ContentValues values = new ContentValues();
-                    values.put(ComputerUserEntry.COLUMN_NAME_IP_ADDRESS, ipAddress);
-                    values.put(ComputerUserEntry.COLUMN_NAME_HOSTNAME, hostname);
-                    values.put(ComputerUserEntry.COLUMN_NAME_USERNAME, user.split("\\s+")[0]);
+                    values.put(DbContract.UsageEntry.COLUMN_NAME_IP_ADDRESS, ipAddress);
+                    values.put(DbContract.UsageEntry.COLUMN_NAME_HOSTNAME, hostname);
+                    values.put(DbContract.UsageEntry.COLUMN_NAME_USERNAME, user.split("\\s+")[0]);
                     database.insert(table, null, values);
                 }
 
@@ -182,12 +180,12 @@ public class GetComputersService extends IntentService {
         @Override
         public void onError (Exception e){
             synchronized (context) {
-                SQLiteDatabase database = new ComputerDbHelper(context).getWritableDatabase();
+                SQLiteDatabase database = new DbHelper(context).getWritableDatabase();
                 database.delete(ComputerEntry.TABLE_NAME, ComputerEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
                 database.close();
 
-                database = new ComputerUserDbHelper(context).getWritableDatabase();
-                database.delete(ComputerUserEntry.TABLE_NAME, ComputerUserEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
+                database = new DbHelper(context).getWritableDatabase();
+                database.delete(DbContract.UsageEntry.TABLE_NAME, DbContract.UsageEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
                 database.close();
 
                 notifyCallbacks();

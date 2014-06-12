@@ -25,11 +25,11 @@ import android.widget.TextView;
 
 import com.jcraft.jsch.JSchException;
 import com.nguyenmp.csil.concurrency.CommandExecutor;
-import com.nguyenmp.csilstatus.app.dao.ComputerDbHelper;
+import com.nguyenmp.csilstatus.app.dao.DbHelper;
 
 import java.io.IOException;
 
-import static com.nguyenmp.csilstatus.app.dao.ComputerContract.ComputerEntry;
+import static com.nguyenmp.csilstatus.app.dao.DbContract.ComputerEntry;
 
 
 /**
@@ -209,7 +209,7 @@ public class LoginActivity extends Activity {
             showProgress(false);
 
             if (response != null) {
-                ComputerDbHelper dbHelper = new ComputerDbHelper(LoginActivity.this);
+                DbHelper dbHelper = new DbHelper(LoginActivity.this);
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
                 db.delete(ComputerEntry.TABLE_NAME, null, null);
                 String[] split;
