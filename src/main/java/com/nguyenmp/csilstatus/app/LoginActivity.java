@@ -259,6 +259,13 @@ public class LoginActivity extends Activity {
 
         return new String[] {username, password};
     }
+
+    public static void logout(Activity activity) {
+        LoginActivity.saveCredentials(activity, null, null);
+        Intent intent = new Intent(activity, LoginActivity.class);
+        activity.startActivity(intent);
+        activity.finish();
+    }
 }
 
 

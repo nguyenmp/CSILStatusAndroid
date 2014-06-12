@@ -13,8 +13,8 @@ import android.os.Process;
 import android.util.Log;
 
 import com.nguyenmp.csil.concurrency.CommandExecutor;
-import com.nguyenmp.csilstatus.app.dao.DbContract.ComputerEntry;
 import com.nguyenmp.csilstatus.app.dao.DbContract;
+import com.nguyenmp.csilstatus.app.dao.DbContract.ComputerEntry;
 import com.nguyenmp.csilstatus.app.dao.DbHelper;
 
 import java.util.Collection;
