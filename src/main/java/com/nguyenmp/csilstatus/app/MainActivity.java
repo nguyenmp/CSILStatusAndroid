@@ -45,7 +45,8 @@ public class MainActivity extends Activity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 
-        GetComputersService.refresh(this);
+        // If we are launching for the first time, get data
+        if (savedInstanceState == null) GetComputersService.refresh(this);
     }
 
     @Override

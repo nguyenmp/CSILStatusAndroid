@@ -162,7 +162,9 @@ public class GetComputersService extends IntentService {
 
                 String[] users = s.split("\\n");
                 for (String user : users) {
-                    Log.d(TAG, user.split("\\s+")[0]);
+                    if (user.length() == 0) continue;
+                    String[] split = user.split("\\s+");
+                    if (split.length < 6) Log.d(TAG, user.replace('\n', ' '));
                     String table = ComputerUserEntry.TABLE_NAME;
                     ContentValues values = new ContentValues();
                     values.put(ComputerUserEntry.COLUMN_NAME_IP_ADDRESS, ipAddress);
