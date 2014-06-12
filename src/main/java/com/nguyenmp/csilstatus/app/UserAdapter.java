@@ -17,6 +17,8 @@ import com.nguyenmp.csilstatus.app.dao.ComputerUserDbHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.nguyenmp.csilstatus.app.dao.ComputerUserContract.ComputerUserEntry;
+
 public class UserAdapter extends BaseAdapter {
     List<User> data = new ArrayList<User>();
     private final Context context;
@@ -63,17 +65,17 @@ public class UserAdapter extends BaseAdapter {
         super.notifyDataSetChanged();
 
         SQLiteDatabase database = new ComputerUserDbHelper(context).getReadableDatabase();
-        String table = ComputerUserContract.ComputerUserEntry.TABLE_NAME;
-        String[] columns = {ComputerUserContract.ComputerUserEntry.COLUMN_NAME_USERNAME};
-        String selection = hostname == null ? null : ComputerUserContract.ComputerUserEntry.COLUMN_NAME_HOSTNAME + "='" + hostname + "'";
-        String orderBy = ComputerUserContract.ComputerUserEntry.COLUMN_NAME_USERNAME + " ASC";
+        String table = ComputerUserEntry.TABLE_NAME;
+        String[] columns = {ComputerUserEntry.COLUMN_NAME_USERNAME};
+        String selection = hostname == null ? null : ComputerUserEntry.COLUMN_NAME_HOSTNAME + "='" + hostname + "'";
+        String orderBy = ComputerUserEntry.COLUMN_NAME_USERNAME + " ASC";
         String limit = "99999";
 
         Cursor cursor = database.query(true, table, columns, selection, null, null, null, orderBy, limit);
 
         List<User> users = new ArrayList<User>();
         while (cursor.moveToNext()) {
-            String username = cursor.getString(cursor.getColumnIndex(ComputerUserContract.ComputerUserEntry.COLUMN_NAME_USERNAME));
+            String username = cursor.getString(cursor.getColumnIndex(ComputerUserEntry.COLUMN_NAME_USERNAME));
 
             User user = new User();
             user.name = username;

@@ -115,6 +115,8 @@ public class MainActivity extends Activity
 
         if (type == Type.Computer) {
             f = ComputerDialogFragment.newInstance(id);
+        } else if (type == Type.User) {
+            f = UserDialogFragment.newInstance(id);
         }
 
         if (f != null) f.show(fm, "dialog");

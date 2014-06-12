@@ -80,7 +80,7 @@ public class UserFragment extends ListFragment implements GetComputersService.Ca
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-//            mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
+            mListener.showDetails(ShowDetailsCallback.Type.User, ((User) adapter.getItem(position)).name);
         }
     }
 }
