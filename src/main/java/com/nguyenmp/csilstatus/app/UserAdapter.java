@@ -31,6 +31,7 @@ public class UserAdapter extends BaseAdapter {
     UserAdapter(Context context, String hostname) {
         this.context = context;
         this.hostname = hostname;
+        notifyDataSetChanged();
     }
 
     @Override
