@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Process;
 import android.util.Log;
 
 import com.nguyenmp.csil.concurrency.CommandExecutor;
@@ -48,12 +49,17 @@ public class GetComputersService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         // Refreshing!
-        int numThreads = Runtime.getRuntime().availableProcessors() * 3;
+        int numThreads = 40;
         ExecutorService exec = Executors.newFixedThreadPool(numThreads);
 
+        // Documetation says we always return an array of two strings
+        // Content is null if not logged in
         String[] credentials = LoginActivity.getCredentials(this);
         String username = credentials[0];
         String password = credentials[1];
+
+        // Sanity check to make sure we are logged in
+        if (username == null || password == null) return;
 
         ComputerDbHelper computerDbHelper = new ComputerDbHelper(this);
         final SQLiteDatabase database = computerDbHelper.getWritableDatabase();
@@ -64,7 +70,6 @@ public class GetComputersService extends IntentService {
         while (cursor.moveToNext()) {
             final String hostname = cursor.getString(cursor.getColumnIndex(ComputerEntry.COLUMN_NAME_HOSTNAME));
             final String ipAddress = cursor.getString(cursor.getColumnIndex(ComputerEntry.COLUMN_NAME_IP_ADDRESS));
-            Log.d(TAG, "Found hostname: " + hostname);
             exec.execute(new WhoRunner(this, username, password, hostname, ipAddress));
         }
 
@@ -133,44 +138,58 @@ public class GetComputersService extends IntentService {
 
     private static class WhoRunner extends CommandExecutor {
         private final String ipAddress;
+        private final String hostname;
         private final Context context;
 
         WhoRunner(Context context, String username, String password, String hostname, String ipAddress) {
             super(username, password, hostname, "who");
             this.ipAddress = ipAddress;
             this.context = context;
+            this.hostname = hostname;
+        }
+
+        @Override
+        public void run() {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            super.run();
         }
 
         @Override
         public void onSuccess (String s){
-            SQLiteDatabase database = new ComputerUserDbHelper(context).getWritableDatabase();
+            synchronized (context) {
+                SQLiteDatabase database = new ComputerUserDbHelper(context).getWritableDatabase();
+                database.delete(ComputerUserEntry.TABLE_NAME, ComputerUserEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
 
-            String[] users = s.split("\\n");
-            for (String user : users) {
-                Log.d(TAG, user.split("\\s+")[0]);
-                String table = ComputerUserEntry.TABLE_NAME;
-                ContentValues values = new ContentValues();
-                values.put(ComputerUserEntry.COLUMN_NAME_IP_ADDRESS, ipAddress);
-                values.put(ComputerUserEntry.COLUMN_NAME_USERNAME, user.split("\\s+")[0]);
-                database.insert(table, null, values);
+                String[] users = s.split("\\n");
+                for (String user : users) {
+                    Log.d(TAG, user.split("\\s+")[0]);
+                    String table = ComputerUserEntry.TABLE_NAME;
+                    ContentValues values = new ContentValues();
+                    values.put(ComputerUserEntry.COLUMN_NAME_IP_ADDRESS, ipAddress);
+                    values.put(ComputerUserEntry.COLUMN_NAME_HOSTNAME, hostname);
+                    values.put(ComputerUserEntry.COLUMN_NAME_USERNAME, user.split("\\s+")[0]);
+                    database.insert(table, null, values);
+                }
+
+                database.close();
+
+                notifyCallbacks();
             }
-
-            database.close();
-
-            notifyCallbacks();
         }
 
         @Override
         public void onError (Exception e){
-            SQLiteDatabase database = new ComputerDbHelper(context).getWritableDatabase();
-            database.delete(ComputerEntry.TABLE_NAME, ComputerEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
-            database.close();
+            synchronized (context) {
+                SQLiteDatabase database = new ComputerDbHelper(context).getWritableDatabase();
+                database.delete(ComputerEntry.TABLE_NAME, ComputerEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
+                database.close();
 
-            database = new ComputerUserDbHelper(context).getWritableDatabase();
-            database.delete(ComputerUserEntry.TABLE_NAME, ComputerUserEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
-            database.close();
+                database = new ComputerUserDbHelper(context).getWritableDatabase();
+                database.delete(ComputerUserEntry.TABLE_NAME, ComputerUserEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
+                database.close();
 
-            notifyCallbacks();
+                notifyCallbacks();
+            }
         }
     }
 }

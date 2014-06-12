@@ -58,7 +58,6 @@ public class UserFragment extends ListFragment implements GetComputersService.Ca
         }
 
         GetComputersService.registerCallback(Looper.getMainLooper(), this);
-        GetComputersService.refresh(activity);
     }
 
     @Override
@@ -148,8 +147,10 @@ public class UserFragment extends ListFragment implements GetComputersService.Ca
             SQLiteDatabase database = new ComputerUserDbHelper(context).getReadableDatabase();
             String table = ComputerUserEntry.TABLE_NAME;
             String[] columns = {ComputerUserEntry.COLUMN_NAME_USERNAME};
+            String orderBy = ComputerUserEntry.COLUMN_NAME_USERNAME + " ASC";
+            String limit = "99999";
 
-            Cursor cursor = database.query(true, table, columns, null, null, null, null, null, "99999");
+            Cursor cursor = database.query(true, table, columns, null, null, null, null, orderBy, limit);
 
             List<User> users = new ArrayList<User>();
             while (cursor.moveToNext()) {

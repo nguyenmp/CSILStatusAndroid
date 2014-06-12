@@ -15,6 +15,7 @@ public class ComputerUserDbHelper extends SQLiteOpenHelper {
             "CREATE TABLE " + ComputerUserEntry.TABLE_NAME + " (" +
                     ComputerUserEntry._ID + " INTEGER PRIMARY KEY," +
                     ComputerUserEntry.COLUMN_NAME_IP_ADDRESS + TEXT_TYPE + COMMA_SEP +
+                    ComputerUserEntry.COLUMN_NAME_HOSTNAME + TEXT_TYPE + COMMA_SEP +
                     ComputerUserEntry.COLUMN_NAME_USERNAME + TEXT_TYPE +
                     " )";
 

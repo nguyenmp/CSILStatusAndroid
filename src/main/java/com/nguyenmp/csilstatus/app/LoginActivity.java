@@ -228,7 +228,7 @@ public class LoginActivity extends Activity {
                 }
 
                 // Save creds
-                saveCredentials(mUsername, mPassword);
+                LoginActivity.saveCredentials(LoginActivity.this, mUsername, mPassword);
 
                 // Start main activity
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
@@ -247,8 +247,8 @@ public class LoginActivity extends Activity {
         }
     }
 
-    private void saveCredentials(String username, String password) {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+    public static void saveCredentials(Context context, String username, String password) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         pref.edit().putString(KEY_USERNAME, username).putString(KEY_PASSWORD, password).commit();
     }
 

@@ -12,5 +12,6 @@ public final class ComputerUserContract {
         public static final String TABLE_NAME = "user_computer";
         public static final String COLUMN_NAME_USERNAME = "username";
         public static final String COLUMN_NAME_IP_ADDRESS = "ipaddress";
+        public static final String COLUMN_NAME_HOSTNAME = "hostname";
     }
 }

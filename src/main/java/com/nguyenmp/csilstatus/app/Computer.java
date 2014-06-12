@@ -3,6 +3,7 @@ package com.nguyenmp.csilstatus.app;
 public class Computer {
     public String hostname;
     public String ipAddress;
+    public int users;
 
     @Override
     public String toString() {

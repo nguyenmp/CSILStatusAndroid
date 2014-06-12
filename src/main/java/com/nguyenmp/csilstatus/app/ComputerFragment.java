@@ -15,9 +15,13 @@ import android.widget.TextView;
 
 import com.nguyenmp.csilstatus.app.dao.ComputerContract.ComputerEntry;
 import com.nguyenmp.csilstatus.app.dao.ComputerDbHelper;
+import com.nguyenmp.csilstatus.app.dao.ComputerUserContract;
+import com.nguyenmp.csilstatus.app.dao.ComputerUserDbHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.nguyenmp.csilstatus.app.dao.ComputerUserContract.ComputerUserEntry;
 
 /**
  * A fragment representing a list of Items.
@@ -56,7 +60,6 @@ public class ComputerFragment extends ListFragment implements GetComputersServic
         }
 
         GetComputersService.registerCallback(Looper.getMainLooper(), this);
-        GetComputersService.refresh(activity);
     }
 
     @Override
@@ -69,9 +72,11 @@ public class ComputerFragment extends ListFragment implements GetComputersServic
     @Override
     public void onUpdated() {
         if (adapter == null) {
-            adapter = new ComputerAdapter(getActivity());
-            setListAdapter(adapter);
-            setListShown(true);
+            Context context = getActivity();
+            if (context != null) {
+                adapter = new ComputerAdapter(context);
+                setListAdapter(adapter);
+            }
         }
 
         if (adapter != null)
@@ -129,15 +134,12 @@ public class ComputerFragment extends ListFragment implements GetComputersServic
 
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
-            if (view == null) view = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_2, viewGroup, false);
+            if (view == null) view = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, viewGroup, false);
 
             Computer computer = (Computer) getItem(i);
 
             TextView title = (TextView) view.findViewById(android.R.id.text1);
-            title.setText(computer.hostname);
-
-            TextView subtitle = (TextView) view.findViewById(android.R.id.text2);
-            subtitle.setText(computer.ipAddress);
+            title.setText(String.format("%s (%d)", computer.hostname, computer.users));
 
             return view;
         }
@@ -146,20 +148,24 @@ public class ComputerFragment extends ListFragment implements GetComputersServic
         public void notifyDataSetChanged() {
             super.notifyDataSetChanged();
 
-            SQLiteDatabase database = new ComputerDbHelper(context).getReadableDatabase();
-            String table = ComputerEntry.TABLE_NAME;
-            String[] columns = {ComputerEntry.COLUMN_NAME_HOSTNAME, ComputerEntry.COLUMN_NAME_IP_ADDRESS};
+            SQLiteDatabase database = new ComputerUserDbHelper(context).getReadableDatabase();
+            String table = ComputerUserEntry.TABLE_NAME;
+            String[] columns = {ComputerUserEntry.COLUMN_NAME_IP_ADDRESS, ComputerUserEntry.COLUMN_NAME_HOSTNAME, "COUNT(*) AS users"};
+            String orderBy = "users DESC, " + ComputerUserEntry.COLUMN_NAME_HOSTNAME + " ASC";
 
-            Cursor cursor = database.query(table, columns, null, null, null, null, null);
+            String groupBy = ComputerUserEntry.COLUMN_NAME_IP_ADDRESS;
+            Cursor cursor = database.query(table, columns, null, null, groupBy, null, orderBy);
 
             List<Computer> computers = new ArrayList<Computer>();
             while (cursor.moveToNext()) {
-                String hostname = cursor.getString(cursor.getColumnIndex(ComputerEntry.COLUMN_NAME_HOSTNAME));
-                String ipAddress = cursor.getString(cursor.getColumnIndex(ComputerEntry.COLUMN_NAME_IP_ADDRESS));
+                int users = cursor.getInt(cursor.getColumnIndex("users"));
+                String ipAddress = cursor.getString(cursor.getColumnIndex(ComputerUserEntry.COLUMN_NAME_IP_ADDRESS));
+                String hostname = cursor.getString(cursor.getColumnIndex(ComputerUserEntry.COLUMN_NAME_HOSTNAME));
 
                 Computer computer = new Computer();
-                computer.hostname = hostname;
+                computer.users = users;
                 computer.ipAddress = ipAddress;
+                computer.hostname = hostname;
                 computers.add(computer);
             }
 
