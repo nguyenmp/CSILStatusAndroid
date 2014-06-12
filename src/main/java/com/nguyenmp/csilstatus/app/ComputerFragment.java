@@ -13,27 +13,20 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.nguyenmp.csilstatus.app.dao.ComputerContract.ComputerEntry;
-import com.nguyenmp.csilstatus.app.dao.ComputerDbHelper;
-import com.nguyenmp.csilstatus.app.dao.ComputerUserContract;
 import com.nguyenmp.csilstatus.app.dao.ComputerUserDbHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.nguyenmp.csilstatus.app.ShowDetailsCallback.Type;
 import static com.nguyenmp.csilstatus.app.dao.ComputerUserContract.ComputerUserEntry;
 
 /**
  * A fragment representing a list of Items.
- * <p />
- * <p />
- * Activities containing this fragment MUST implement the
- * {@link com.nguyenmp.csilstatus.app.ComputerFragment.OnFragmentInteractionListener}
- * interface.
  */
 public class ComputerFragment extends ListFragment implements GetComputersService.Callback {
     private static final String TAG = "ComputerFragment";
-    private OnFragmentInteractionListener mListener;
+    private ShowDetailsCallback mListener;
 
     private BaseAdapter adapter = null;
 
@@ -53,7 +46,7 @@ public class ComputerFragment extends ListFragment implements GetComputersServic
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mListener = (ShowDetailsCallback) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                 + " must implement OnFragmentInteractionListener");
@@ -90,23 +83,8 @@ public class ComputerFragment extends ListFragment implements GetComputersServic
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-//            mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
+            mListener.showDetails(Type.Computer, ((Computer) adapter.getItem(position)).hostname);
         }
-    }
-
-    /**
-    * This interface must be implemented by activities that contain this
-    * fragment to allow an interaction in this fragment to be communicated
-    * to the activity and potentially other fragments contained in that
-    * activity.
-    * <p>
-    * See the Android Training lesson <a href=
-    * "http://developer.android.com/training/basics/fragments/communicating.html"
-    * >Communicating with Other Fragments</a> for more information.
-    */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
     }
 
     private static class ComputerAdapter extends BaseAdapter {

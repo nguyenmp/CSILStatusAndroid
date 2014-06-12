@@ -2,6 +2,7 @@ package com.nguyenmp.csilstatus.app;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
@@ -18,8 +19,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks,
-        ComputerFragment.OnFragmentInteractionListener,
-        UserFragment.OnFragmentInteractionListener {
+        ShowDetailsCallback {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -109,8 +109,15 @@ public class MainActivity extends Activity
     }
 
     @Override
-    public void onFragmentInteraction(String id) {
-        Toast.makeText(this, id, Toast.LENGTH_SHORT).show();
+    public void showDetails(Type type, String id) {
+        FragmentManager fm = getFragmentManager();
+        DialogFragment f = null;
+
+        if (type == Type.Computer) {
+            f = ComputerDialogFragment.newInstance(id);
+        }
+
+        if (f != null) f.show(fm, "dialog");
     }
 
     /**
