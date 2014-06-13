@@ -1,15 +1,20 @@
 package com.nguyenmp.csilstatus.app;
 
 import android.app.IntentService;
+import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
+import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.nguyenmp.csil.concurrency.CommandExecutor;
@@ -17,11 +22,19 @@ import com.nguyenmp.csilstatus.app.dao.DbContract;
 import com.nguyenmp.csilstatus.app.dao.DbContract.ComputerEntry;
 import com.nguyenmp.csilstatus.app.dao.DbHelper;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import android.content.SharedPreferences;
+
+import static com.nguyenmp.csilstatus.app.dao.DbContract.UsageEntry;
+
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -78,10 +91,54 @@ public class GetComputersService extends IntentService {
             e.printStackTrace();
         }
 
+		checkForFriends();
+
         database.close();
     }
 
-    private static void notifyCallbacks() {
+	private void checkForFriends() {
+		Set<String> friends = new HashSet<String>();
+		Set<String> allUsers = new HashSet<String>();
+
+		// Read active users from database
+		SQLiteDatabase database = new DbHelper(this).getReadableDatabase();
+		String table = UsageEntry.TABLE_NAME;
+		String[] columns = {UsageEntry.COLUMN_NAME_USERNAME};
+		String orderBy = UsageEntry.COLUMN_NAME_USERNAME + " ASC";
+		String limit = "99999";
+
+		Cursor cursor = database.query(true, table, columns, null, null, null, null, orderBy, limit);
+
+		while (cursor.moveToNext()) {
+			String username = cursor.getString(cursor.getColumnIndex(UsageEntry.COLUMN_NAME_USERNAME));
+			allUsers.add(username);
+		}
+		database.close();
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		friends = preferences.getStringSet("friends", null); // assign friends
+
+		allUsers.retainAll(friends);
+		if(!allUsers.isEmpty()) {
+			int numUsers = allUsers.size();
+			NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
+			for(String friend : allUsers) {
+				style.addLine(friend);
+			}
+			NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+					.setStyle(style)
+					.setContentTitle(String.format("%d friend%s at CSIL", numUsers, numUsers == 1 ? "" : "s"))
+					.setContentText(getResources().getString(R.string.app_name))
+					.setContentInfo(String.valueOf(numUsers))
+					.setLargeIcon(BitmapFactory.decodeResource(null, R.drawable.ic_launcher))
+					.setSmallIcon(R.drawable.ic_launcher);
+			NotificationManager mNotificationManager =
+					(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			mNotificationManager.notify(0, mBuilder.build());
+		}
+		else Log.i("", "No friends found");
+	}
+
+	private static void notifyCallbacks() {
         for (CallbackHandler callback : CALLBACKS) {
             callback.sendEmptyMessage(0);
         }
@@ -156,18 +213,18 @@ public class GetComputersService extends IntentService {
         public void onSuccess (String s){
             synchronized (context) {
                 SQLiteDatabase database = new DbHelper(context).getWritableDatabase();
-                database.delete(DbContract.UsageEntry.TABLE_NAME, DbContract.UsageEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
+                database.delete(UsageEntry.TABLE_NAME, UsageEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
 
                 String[] users = s.split("\\n");
                 for (String user : users) {
                     if (user.length() == 0) continue;
                     String[] split = user.split("\\s+");
                     if (split.length < 6) Log.d(TAG, user.replace('\n', ' '));
-                    String table = DbContract.UsageEntry.TABLE_NAME;
+                    String table = UsageEntry.TABLE_NAME;
                     ContentValues values = new ContentValues();
-                    values.put(DbContract.UsageEntry.COLUMN_NAME_IP_ADDRESS, ipAddress);
-                    values.put(DbContract.UsageEntry.COLUMN_NAME_HOSTNAME, hostname);
-                    values.put(DbContract.UsageEntry.COLUMN_NAME_USERNAME, user.split("\\s+")[0]);
+                    values.put(UsageEntry.COLUMN_NAME_IP_ADDRESS, ipAddress);
+                    values.put(UsageEntry.COLUMN_NAME_HOSTNAME, hostname);
+                    values.put(UsageEntry.COLUMN_NAME_USERNAME, user.split("\\s+")[0]);
                     database.insert(table, null, values);
                 }
 
@@ -185,7 +242,7 @@ public class GetComputersService extends IntentService {
                 database.close();
 
                 database = new DbHelper(context).getWritableDatabase();
-                database.delete(DbContract.UsageEntry.TABLE_NAME, DbContract.UsageEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
+                database.delete(UsageEntry.TABLE_NAME, UsageEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
                 database.close();
 
                 notifyCallbacks();
