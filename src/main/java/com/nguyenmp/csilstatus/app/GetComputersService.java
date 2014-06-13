@@ -115,7 +115,7 @@ public class GetComputersService extends IntentService {
 		}
 		database.close();
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-		friends = preferences.getStringSet("friends", null); // assign friends
+		friends = preferences.getStringSet("friends",  new HashSet<String>()); // assign friends
 
 		allUsers.retainAll(friends);
 		if(!allUsers.isEmpty()) {
