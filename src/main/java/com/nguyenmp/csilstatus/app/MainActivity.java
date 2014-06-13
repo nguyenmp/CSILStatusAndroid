@@ -60,7 +60,6 @@ public class MainActivity extends Activity
                 break;
             case 2: fragment = FriendsFragment.newInstance();
                 break;
-
         }
 
         FragmentManager fragmentManager = getFragmentManager();

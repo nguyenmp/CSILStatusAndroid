@@ -7,18 +7,23 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A fragment representing a list of Items.
@@ -27,6 +32,8 @@ public class FriendsFragment extends ListFragment implements GetComputersService
     public static final String KEY_FRIENDS = "friends";
 
     private BaseAdapter adapter = null;
+
+    private Callback callback;
 
     public static FriendsFragment newInstance() {
         return new FriendsFragment();
@@ -48,6 +55,14 @@ public class FriendsFragment extends ListFragment implements GetComputersService
 
         adapter = new FriendsAdapter(getActivity());
         setListAdapter(adapter);
+
+        callback = new Callback() {
+            @Override
+            public void onChange() {
+                if (adapter != null) adapter.notifyDataSetChanged();
+            }
+        };
+        addCallback(Looper.getMainLooper(), callback);
     }
 
     @Override
@@ -56,6 +71,7 @@ public class FriendsFragment extends ListFragment implements GetComputersService
         adapter = null;
         setListAdapter(null);
         GetComputersService.unregisterCallback(this);
+        if (callback != null) removeCallback(callback);
     }
 
     @Override
@@ -89,7 +105,19 @@ public class FriendsFragment extends ListFragment implements GetComputersService
                     }
                 });
 
-                builder.show();
+                AlertDialog dialog = builder.create();
+
+                dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+                    @Override
+                    public void onShow(DialogInterface dialogInterface) {
+                        input.requestFocus();
+
+                        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.showSoftInput(input, 0);
+                    }
+                });
+
+                dialog.show();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -128,6 +156,42 @@ public class FriendsFragment extends ListFragment implements GetComputersService
         builder.show();
     }
 
+    public static interface Callback {
+        public void onChange();
+    }
+
+    private static class CallbackHandler extends Handler {
+        private final FriendsFragment.Callback callback;
+
+        public CallbackHandler(Looper looper, FriendsFragment.Callback callback) {
+            super(looper);
+            this.callback = callback;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            callback.onChange();
+        }
+    }
+
+    private static List<CallbackHandler> callbacks = new CopyOnWriteArrayList<CallbackHandler>();
+
+    private static void notifyCallbacks() {
+        for (CallbackHandler handler : callbacks) {
+            handler.callback.onChange();
+        }
+    }
+
+    public static void addCallback(Looper looper, Callback callback) {
+        callbacks.add(new CallbackHandler(looper, callback));
+    }
+
+    public static void removeCallback(Callback callback) {
+        for (CallbackHandler handler : callbacks) {
+            if (handler.callback == callback) callbacks.remove(handler);
+        }
+    }
+
     private static final Object lock = new Object();
     public static Set<String> getFriends(Context context) {
         synchronized (lock) {
@@ -140,6 +204,7 @@ public class FriendsFragment extends ListFragment implements GetComputersService
         synchronized (lock) {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
             preferences.edit().putStringSet(KEY_FRIENDS, friends).commit();
+            notifyCallbacks();
         }
     }
 
