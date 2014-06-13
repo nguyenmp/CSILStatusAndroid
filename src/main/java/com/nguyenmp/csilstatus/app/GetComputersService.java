@@ -5,9 +5,9 @@ import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,20 +18,16 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.nguyenmp.csil.concurrency.CommandExecutor;
-import com.nguyenmp.csilstatus.app.dao.DbContract;
 import com.nguyenmp.csilstatus.app.dao.DbContract.ComputerEntry;
 import com.nguyenmp.csilstatus.app.dao.DbHelper;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import android.content.SharedPreferences;
 
 import static com.nguyenmp.csilstatus.app.dao.DbContract.UsageEntry;
 
@@ -97,7 +93,7 @@ public class GetComputersService extends IntentService {
     }
 
 	private void checkForFriends() {
-		Set<String> friends = new HashSet<String>();
+		Set<String> friends = FriendsFragment.getFriends(this);
 		Set<String> allUsers = new HashSet<String>();
 
 		// Read active users from database
@@ -114,8 +110,6 @@ public class GetComputersService extends IntentService {
 			allUsers.add(username);
 		}
 		database.close();
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-		friends = preferences.getStringSet("friends",  new HashSet<String>()); // assign friends
 
 		allUsers.retainAll(friends);
 		if(!allUsers.isEmpty()) {

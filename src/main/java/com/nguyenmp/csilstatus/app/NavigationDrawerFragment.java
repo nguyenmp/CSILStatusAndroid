@@ -103,6 +103,7 @@ public class NavigationDrawerFragment extends Fragment {
                 new String[]{
                         getString(R.string.computer_usage),
                         getString(R.string.who_is_at_csil),
+                        getString(R.string.friends),
                 }));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
