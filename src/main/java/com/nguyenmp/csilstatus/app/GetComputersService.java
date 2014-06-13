@@ -5,7 +5,6 @@ import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
@@ -13,7 +12,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
-import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -56,7 +54,7 @@ public class GetComputersService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         // Refreshing!
-        int numThreads = 40;
+        int numThreads = 100;
         ExecutorService exec = Executors.newFixedThreadPool(numThreads);
 
         // Documetation says we always return an array of two strings
@@ -82,7 +80,7 @@ public class GetComputersService extends IntentService {
 
         try {
             exec.shutdown();
-            exec.awaitTermination(999999, TimeUnit.DAYS);
+            exec.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -90,6 +88,8 @@ public class GetComputersService extends IntentService {
 		checkForFriends();
 
         database.close();
+
+        notifyCallbacks();
     }
 
 	private void checkForFriends() {
@@ -223,8 +223,6 @@ public class GetComputersService extends IntentService {
                 }
 
                 database.close();
-
-                notifyCallbacks();
             }
         }
 
@@ -238,8 +236,6 @@ public class GetComputersService extends IntentService {
                 database = new DbHelper(context).getWritableDatabase();
                 database.delete(UsageEntry.TABLE_NAME, UsageEntry.COLUMN_NAME_IP_ADDRESS + "='" + ipAddress + "'", null);
                 database.close();
-
-                notifyCallbacks();
             }
         }
     }
